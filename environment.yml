@@ -1,0 +1,33 @@
+# Conda environment for ABNet.
+#
+#   conda env create -f environment.yml
+#   conda activate abnet
+#
+# The CUDA build of PyTorch is installed via pip so the wheel matches the
+# pytorch.org index; change cu118 if your driver needs a different CUDA.
+name: abnet
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pip>=23
+  # decord's conda-forge build pulls in the ffmpeg libraries it needs, which
+  # is more reliable than the pip wheel on many Linux setups.
+  - ffmpeg
+  - pip:
+      - --extra-index-url https://download.pytorch.org/whl/cu118
+      - torch==2.7.1
+      - torchvision==0.22.1
+      - omegaconf==2.3.0
+      - numpy==1.26.4
+      - Pillow==12.2.0
+      - tqdm==4.67.3
+      # silhouette extraction (offline, training-only)
+      - transformers==4.45.2
+      - tokenizers==0.20.3
+      - safetensors==0.7.0
+      - huggingface-hub==0.36.2
+      # face blurring
+      - opencv-python==4.5.5.64
+      # optional: raw video decoding
+      - decord==0.6.0

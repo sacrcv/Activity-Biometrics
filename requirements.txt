@@ -1,0 +1,39 @@
+# ABNet runtime dependencies.
+#
+# Install PyTorch first, matched to your CUDA version, from
+# https://pytorch.org/get-started/locally/ -- e.g. for CUDA 11.8:
+#
+#   pip install torch==2.7.1 torchvision==0.22.1 --index-url https://download.pytorch.org/whl/cu118
+#
+# then:  pip install -r requirements.txt
+#
+# For the exact versions this repo was developed and verified against, use
+# requirements-lock.txt instead.
+
+# --- core ---
+torch>=2.0
+torchvision>=0.15             # ElasticTransform parameters, functional transforms
+omegaconf>=2.2                # YAML configs with _base_ inheritance
+numpy>=1.22,<3
+Pillow>=9.0                   # frame and silhouette decoding
+tqdm>=4.64
+
+# --- silhouette extraction (tools/extract_silhouettes.py, --backend hf) ---
+# Mask2Former through HuggingFace, using Facebook's released COCO weights.
+# Only needed once, offline: silhouettes are never used at inference.
+# For --backend d2 instead, install detectron2 and the official Mask2Former
+# repo per https://github.com/facebookresearch/Mask2Former/blob/main/INSTALL.md
+transformers>=4.28,<5
+tokenizers>=0.13
+safetensors>=0.3
+huggingface-hub>=0.16
+
+# --- face blurring (tools/blur_faces.py) ---
+# Also supplies the Haar cascade fallback detector.
+opencv-python>=4.5
+
+# --- optional: video files instead of pre-extracted frames ---
+# Needed by tools/extract_frames.py and by annotations that use a "video" field
+# rather than "frames_dir". Skip it if you only ever use extracted frames.
+# No wheels exist for Apple Silicon; build from source or skip it there.
+decord>=0.6

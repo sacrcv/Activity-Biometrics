@@ -1,0 +1,128 @@
+# Defaults shared by every dataset config. Dataset configs inherit this via
+# `_base_: _base.yaml` and override what they need.
+#
+# Values marked [paper] are stated in arXiv:2403.17360. Values marked [choice]
+# are defaults for settings the paper does not specify; the reasoning for each
+# is in the docstring of the module that consumes it.
+
+model:
+  # ---- video encoder S_phi / A_phi (Section 4) ----
+  backbone_depth: 50            # [paper] "We use ResNet3D-50 [18] as the backbone"
+  # [choice] Kinetics-700 weights from 3D-ResNets-PyTorch. Download
+  # r3d50_K_200ep.pth and point this at it; random init otherwise, which the
+  # paper's numbers do not assume.
+  pretrained: pretrained/r3d50_K_200ep.pth
+  # false keeps all 8 frames through the trunk by making the max-pool and the
+  # stage strides (1,2,2). true restores the upstream isotropic strides, which
+  # collapse an 8-frame clip to one temporal position.
+  temporal_strides: false
+  conv1_t_stride: 1
+
+  # ---- how F_AB is divided between the two heads ----
+  # [choice] channel | temporal | shared
+  split_mode: channel
+
+  # ---- actor head C^B and activity head C^A (Section 3.1) ----
+  feature_dim: 256              # width of f_bb and f_ba
+  decoder:                      # [choice] the paper says "standard transformer decoder"
+    d_model: 512
+    num_queries: 16
+    num_layers: 2
+    nhead: 8
+    dim_feedforward: 2048
+    dropout: 0.1
+  bnneck_dropout: 0.0
+  cosine_classifier: false
+
+# ---- the bias-less teacher T (Section 3.1) ----
+teacher:
+  enabled: true
+  # [paper] "GaitGL [28] for the teacher's silhouette encoder T_theta(.)"
+  checkpoint: null              # set to output/<dataset>_teacher/checkpoint_last.pth
+  channels: [32, 64, 128, 256]
+  num_bins: 64
+  halving: 2
+
+loss:
+  # Eq. 6: L = L_Bio + l1*L_Ac + l2*L_KD + l3*L_Dis
+  # [paper] "lambda_i, i in [1,2,3] in Eq. 6 is set to 0.01"
+  activity_weight: 0.01         # lambda_1, L_Ac
+  distillation_weight: 0.01     # lambda_2, L_KD
+  distortion_weight: 0.01       # lambda_3, L_Dis
+  margin: 0.3                   # [paper] "The triplet loss margin m is set to 0.3"
+  kd_temperature: 4.0           # [choice] tau in Eq. 1
+  label_smoothing: 0.0          # 0 = the plain cross entropy of Eq. 3
+  normalize_triplet: false
+  normalize_distortion: false
+
+data:
+  data_root: data
+  annotation: null              # set per dataset
+  image_size: [256, 128]        # [paper] "resizing to dimensions of 256x128"
+  silhouette_size: [64, 44]     # GaitGL's native input size
+  num_frames: 8                 # [paper] "randomly selecting 8 frames with a stride of 4"
+  frame_stride: 4
+  sampling: stride              # stride (paper) | linspace (long untrimmed videos)
+  frame_template: "frame{:06d}.jpg"
+  silhouette_template: "frame{:06d}.png"
+  frame_index_base: 1
+  augmentation:
+    horizontal_flip: 0.5
+    random_crop_pad: 0
+    random_erasing: 0.0         # off: it would break the Eq. 5 appearance pair
+    # [paper] "The videos from all five datasets undergo an arbitrarily chosen
+    # value of hue shifting." [choice] deterministic per video, keyed on clip id.
+    hue_shift: 0.5
+    # [paper] "alpha = 250 is selected as the optimal value" (Figure 4)
+    distortion_alpha: 250.0
+    distortion_sigma: 5.0
+
+sampler:
+  num_instances: 4              # [paper] K=4 clips per identity; P = batch_size / K
+
+run:
+  output_dir: output/abnet
+  seed: 42
+  deterministic: false
+
+  # [paper] "trained for 150 epochs", "batch size of 32 with each batch
+  # containing 8 person and 4 clips for each person", "Adam ... with weight
+  # decay of 5x10-4 and learning rate of 3.5x10-4", "decay factor 0.1 after
+  # every 40 epochs".
+  max_epoch: 150
+  batch_size: 32
+  batch_size_eval: 32
+  optimizer: adam
+  lr: 3.5e-4
+  weight_decay: 5.0e-4
+  betas: [0.9, 0.999]
+  head_lr_mult: 1.0
+  scheduler: step               # step (paper) | cosine
+  lr_decay_epochs: 40
+  lr_decay_gamma: 0.1
+  warmup_epochs: 0              # 0 reproduces the paper
+  min_lr_ratio: 0.01            # cosine only
+  warmup_start_ratio: 0.01
+  clip_grad_norm: 5.0
+  accum_grad_iters: 1
+  amp: bf16                     # bf16 | fp16 | none
+
+  num_workers: 8
+  persistent_workers: false
+  prefetch_factor: 2
+  pin_memory: true
+  find_unused_parameters: false
+
+  print_freq: 20
+  eval_freq: 10
+  save_freq: 10
+  resume: null
+  checkpoint: null
+
+  # ---- retrieval ----
+  max_rank: 50
+  eval_feature: fused           # fused (paper) | biometrics | appearance | activity
+  far_targets: [0.001]          # [paper] TAR @ 0.1% FAR
+  protocols: [same_activity]
+  primary_protocol: same_activity
+  primary_metric: "R@1"

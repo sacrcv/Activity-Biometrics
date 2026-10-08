@@ -1,0 +1,38 @@
+# Charades-AB -- derived from Charades.
+#
+# "Charades-AB contains all the 9,848 annotated videos from Charades [38] with
+# approximately 6.8 activities per video performed by 267 actors across 157
+# activity classes from a single viewpoint. We use the official train-test split
+# for our experiments."
+#
+# Two consequences: the activity objective is multi-label (BCE, selected
+# automatically from the annotation's `multilabel` flag), and the View+/View-
+# protocols do not apply.
+#
+#   python tools/extract_frames.py --videos <charades_videos> --out data/charades_ab/frames
+#   python tools/blur_faces.py --frames-root data/charades_ab/frames
+#   python tools/extract_silhouettes.py --frames-root data/charades_ab/frames \
+#       --out data/charades_ab/silhouettes
+#   python tools/prepare_dataset.py --dataset charades \
+#       --charades-csv-dir data/charades_ab/annotations \
+#       --frames-root data/charades_ab/frames \
+#       --silhouettes-root data/charades_ab/silhouettes \
+#       --out data/charades_ab/annotations.json
+
+_base_: _base.yaml
+
+data:
+  annotation: data/charades_ab/annotations.json
+  num_frames: 8
+  # Charades videos are long and untrimmed, so spread the 8 frames over the
+  # whole clip instead of taking a 29-frame strided window.
+  sampling: linspace
+
+run:
+  output_dir: output/charades_ab
+  batch_size_eval: 64
+  protocols:
+    - same_activity
+    - cross_activity
+  primary_protocol: same_activity
+  primary_metric: "R@1"

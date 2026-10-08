@@ -1,0 +1,28 @@
+# Exact versions this repo was developed and verified against.
+# Python 3.10.20, CUDA 11.8, NVIDIA A100-40GB.
+#
+# Install PyTorch first:
+#
+#   pip install torch==2.7.1 torchvision==0.22.1 --index-url https://download.pytorch.org/whl/cu118
+#
+# then:  pip install -r requirements-lock.txt
+
+torch==2.7.1
+torchvision==0.22.1
+omegaconf==2.3.0
+antlr4-python3-runtime==4.9.3
+numpy==1.26.4
+Pillow==12.2.0
+tqdm==4.67.3
+
+# silhouette extraction (offline, training-only)
+transformers==4.45.2
+tokenizers==0.20.3
+safetensors==0.7.0
+huggingface-hub==0.36.2
+
+# face blurring
+opencv-python==4.5.5.64
+
+# optional: raw video decoding
+decord==0.6.0

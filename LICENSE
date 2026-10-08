@@ -1,6 +1,57 @@
+================================================================================
+ABNet — License
+================================================================================
+
+Copyright (c) 2024 University of Central Florida. All rights reserved.
+
+Please credit the authors and cite the paper listed in the README when
+you share or adapt this material.
+
+Except for the third-party components listed in Part B below, this repository
+is licensed under the
+
+    Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International
+    (CC BY-NC-SA 4.0)
+
+Full license text: https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode
+Summary:           https://creativecommons.org/licenses/by-nc-sa/4.0/
+
+(CC BY-NC-SA 4.0 Section 3(a)(1)(C) permits referring to the license by URI
+rather than reproducing its full text.)
+
+In short, you may share and adapt this material provided that you give
+appropriate credit, do not use it for commercial purposes, and distribute any
+derivative work under the same license. The license grants rights under
+copyright only; see Part C regarding patents.
+
+THE MATERIAL IS PROVIDED AS-IS AND WITHOUT WARRANTIES OF ANY KIND, AND THE
+LICENSOR WILL NOT BE LIABLE FOR ANY DAMAGES ARISING FROM ITS USE, TO THE
+FULLEST EXTENT PERMITTED BY LAW. See Section 5 of the full license text.
+
+
+--------------------------------------------------------------------------------
+PART A — SCOPE
+--------------------------------------------------------------------------------
+
+CC BY-NC-SA 4.0 applies to the original work in this repository, which is
+everything except the files named in Part B.
+
+
+--------------------------------------------------------------------------------
+PART B — THIRD-PARTY COMPONENTS (NOT CC BY-NC-SA)
+--------------------------------------------------------------------------------
+
+B.1  abnet/models/resnet3d.py — MIT License
+
+This file is adapted from 3D-ResNets-PyTorch
+(https://github.com/kenshohara/3D-ResNets-PyTorch) and remains under the MIT
+License. It is NOT relicensed, and the NonCommercial and ShareAlike conditions
+above do NOT apply to it. You may continue to use this file under MIT terms
+independently of this repository.
+
 MIT License
 
-Copyright (c) 2024 sacrcv
+Copyright (c) 2017 Kensho Hara
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,3 +70,89 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+Modifications made when vendoring: the max-pool and stage strides were changed
+to (1, 2, 2) so that an 8-frame clip keeps its temporal extent through the
+trunk; the classifier head was dropped and forward() now returns the layer4
+feature map; and a loader was added for upstream checkpoint payloads.
+
+
+B.2  abnet/models/gaitgl.py — architecture attribution
+
+This file implements the GaitGL architecture of
+
+    B. Lin, S. Zhang, X. Yu. "Gait Recognition via Effective Global-Local
+    Feature Representation and Local Temporal Aggregation." ICCV 2021.
+
+It was written for this repository, following the paper together with the
+official release at https://github.com/bb12346/GaitGL (model/network/vgg_c3d.py,
+class C3D_VGG) and cross-checked against the OpenGait reference implementation
+at https://github.com/ShiqiYu/OpenGait (Apache License 2.0). It additionally
+adds an identity classification head, which upstream does not provide and which
+the knowledge-distillation objective requires.
+
+Note on upstream terms: the bb12346/GaitGL repository publishes no license
+file, so it grants no explicit permissions. Nothing in this repository should
+be read as a license to that upstream code. If you need rights to the original
+release, seek them from its authors. The OpenGait implementation consulted
+during cross-checking is Apache License 2.0.
+
+
+B.3  Runtime-downloaded models (not distributed here)
+
+The following are fetched at runtime by preprocessing tools and are governed by
+their own terms. No weights are distributed with this repository.
+
+    Mask2Former — tools/extract_silhouettes.py
+        Used through HuggingFace Transformers (Apache License 2.0) with Meta's
+        released COCO checkpoints, or optionally through the official
+        implementation at https://github.com/facebookresearch/Mask2Former
+        (MIT License, Copyright (c) Meta Platforms, Inc.).
+
+    OpenCV SSD ResNet-10 face detector — tools/blur_faces.py
+        Fetched from https://github.com/opencv and
+        https://github.com/opencv/opencv_3rdparty, Apache License 2.0.
+
+    ResNet3D-50 Kinetics weights — abnet/models/resnet3d.py
+        Fetched by the user from 3D-ResNets-PyTorch (MIT License).
+
+
+--------------------------------------------------------------------------------
+PART C — PATENT NOTICE
+--------------------------------------------------------------------------------
+
+This repository implements technology covered, fully or partially, by the
+following intellectual property owned by the University of Central Florida
+(UCF):
+
+    US Patent 12,482,255
+    "Activity-based person identification using biometric disentanglement"
+    S. Azad, Y. S. Rawat
+
+    US Patent Application 19/361,835
+    "Silhouette-Guided Feature Distillation for Activity-Aware Person
+    Identification"
+    S. Azad, Y. S. Rawat
+
+The first is an issued patent; the second is a pending application.
+
+NO PATENT RIGHTS ARE GRANTED BY THIS LICENSE. CC BY-NC-SA 4.0 is a copyright
+license only; Section 2(b)(2) of that license states expressly that "Patent and
+trademark rights are not licensed under this Public License."
+
+The copyright permission granted above therefore does not authorize practicing
+the patented inventions. Commercial use, and any other use requiring patent rights,
+requires a separate license from UCF.
+
+    UCF Office of Technology Transfer
+    https://www.research.ucf.edu/tech-transfer/contact/
+
+
+
+--------------------------------------------------------------------------------
+PART D — DATASETS
+--------------------------------------------------------------------------------
+
+No dataset is distributed with this code. NTU RGB+D 120 and Charades each carry
+their own licence and must be obtained from their original providers, whose
+terms govern their use. See the README for links.

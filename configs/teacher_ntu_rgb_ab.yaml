@@ -1,0 +1,31 @@
+# Stage 0: train the bias-less teacher T on NTU RGB-AB silhouettes.
+#
+# GaitGL's own recipe (Adam, lr 1e-4, cross entropy + batch-hard triplet) at
+# ABNet's clip length. The clip length is deliberately *not* GaitGL's 30 frames:
+# Eq. 1 is a per-sample KL between teacher and student, so both must see the
+# same 8 frames of the same clip.
+#
+#   bash scripts/train_teacher.sh configs/teacher_ntu_rgb_ab.yaml
+
+_base_: _base.yaml
+
+data:
+  annotation: data/ntu_rgb_ab/annotations.json
+  num_frames: 8
+  frame_stride: 4
+  sampling: stride
+
+run:
+  output_dir: output/ntu_rgb_ab_teacher
+  max_epoch: 60
+  batch_size: 32
+  optimizer: adam
+  lr: 1.0e-4
+  weight_decay: 5.0e-4
+  scheduler: step
+  lr_decay_epochs: 40
+  lr_decay_gamma: 0.1
+  amp: none           # GaitGL is small and its GeM exponent is numerically touchy
+  eval_freq: 0        # no retrieval eval in stage 0; see TeacherTrainer
+  save_freq: 10
+  print_freq: 20

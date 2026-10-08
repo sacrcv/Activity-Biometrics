@@ -1,0 +1,42 @@
+# NTU RGB-AB -- derived from NTU RGB+D 120.
+#
+# "We ignore mutual activities and consider 94 activity classes with 88692
+# samples for NTU RGB-AB. The activity classes are divided into daily
+# activities and medical conditions performed by a total of 106 subjects across
+# 32 different setups, 155 different views which are shown with 3 cameras. We
+# use the official cross-subject split for the train test separation."
+#
+# Viewpoint is recorded, so all four protocol variants apply.
+#
+#   python tools/extract_frames.py --videos <ntu_videos> --out data/ntu_rgb_ab/frames
+#   python tools/blur_faces.py --frames-root data/ntu_rgb_ab/frames
+#   python tools/extract_silhouettes.py --frames-root data/ntu_rgb_ab/frames \
+#       --out data/ntu_rgb_ab/silhouettes
+#   python tools/prepare_dataset.py --dataset ntu \
+#       --frames-root data/ntu_rgb_ab/frames \
+#       --silhouettes-root data/ntu_rgb_ab/silhouettes \
+#       --out data/ntu_rgb_ab/annotations.json
+#   bash scripts/train_teacher.sh configs/teacher_ntu_rgb_ab.yaml
+#   bash scripts/train.sh configs/ntu_rgb_ab.yaml
+
+_base_: _base.yaml
+
+data:
+  annotation: data/ntu_rgb_ab/annotations.json
+  num_frames: 8
+  frame_stride: 4
+  sampling: stride
+
+teacher:
+  checkpoint: output/ntu_rgb_ab_teacher/checkpoint_last.pth
+
+run:
+  output_dir: output/ntu_rgb_ab
+  batch_size_eval: 64
+  protocols:
+    - same_activity_include_view
+    - same_activity_exclude_view
+    - cross_activity_include_view
+    - cross_activity_exclude_view
+  primary_protocol: same_activity_include_view
+  primary_metric: "R@1"
